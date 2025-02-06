@@ -23,7 +23,7 @@ class TodoCreate extends TodoState {
   });
 }
 
-//Todo Deleting
+//Todo Delete
 
 class TodoDelete extends TodoState {}
 

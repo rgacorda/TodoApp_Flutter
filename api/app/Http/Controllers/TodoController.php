@@ -22,9 +22,17 @@ class TodoController extends Controller
     {
         $request -> validate([
             'title'=>'required|string|max:255',
+            'image'=>'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('todo_images', 'public');
+        }
+
         return Todo::create([
-            'title'=>$request->title
+            'title'=>$request->title,
+            'image'=>$imagePath
         ]);
     }
 
@@ -43,10 +51,17 @@ class TodoController extends Controller
     {
         $request -> validate([
             'title'=>'required|string|max:255',
+            'image'=>'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('todo_images', 'public');
+        }
+
         $todo->update([
             'title'=>$request->title,
-            'completed'=>false,
+            'image'=>$imagePath
         ]);
         return $todo;
     }

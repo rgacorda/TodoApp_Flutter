@@ -1,38 +1,54 @@
-import 'dart:convert';
 import 'package:app/model/todo_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class TodoServices {
   static const String baseUrl = 'http://10.0.2.2:8000';
 
+  final Dio _dio = Dio(BaseOptions(baseUrl: baseUrl, headers: {'Content-Type': 'application/json'}));
+
+
   Future<List<Todo>> fetchTodos() async {
-    final response = await http.get(Uri.parse('$baseUrl/todos'));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => Todo.fromJson(e)).toList();
-    } else {
-      throw Exception('Failed to load todos. Status code: ${response.statusCode}');
+    try {
+      final response = await _dio.get('/todos');
+
+      if (response.data is List) {
+        return await Future.wait(
+          (response.data as List).map((e) async => await Todo.fromJson(e)),
+        );
+      } else {
+        throw Exception("Invalid response format: Expected a list.");
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to load todos: ${e.response?.statusCode} - ${e.message}');
     }
   }
 
-  Future<Todo> createTodo(String title) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/todos'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'title': title}),
-    );
-    if (response.statusCode == 201) {
-      return Todo.fromJson(json.decode(response.body));
+  Future<Todo> createTodo(String title, String? imagePath) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'title': title,
+        if (imagePath != null) 'image': await MultipartFile.fromFile(imagePath),
+      });
+
+      final response = await _dio.post('/todos', data: formData);
+
+      if (response.statusCode == 201) {
+        print(imagePath);
+        return Todo.fromJson(response.data);
+      } else {
+        throw Exception('Failed to create todo: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to create todo: ${e.response?.statusCode} - ${e.message}');
     }
-    throw Exception('Failed to create todo');
   }
+
 
   Future<void> deleteTodo(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/todos/$id')
-    );
-    if (response.statusCode != 204){
-      throw Exception('Failed to delete todo');
+    try {
+      await _dio.delete('/todos/$id');
+    } on DioException catch (e) {
+      throw Exception('Failed to delete todo: ${e.response?.statusCode} - ${e.message}');
     }
   }
 }

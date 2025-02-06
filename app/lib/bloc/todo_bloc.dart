@@ -27,7 +27,7 @@ class TodoBloc extends Bloc<TodoEvent,TodoState> {
   Future<void> _onCreateTodo(AddTodo event, Emitter<TodoState> emit) async {
     try {
       if (state is TodoLoaded){
-        final newTodo = await todoServices.createTodo(event.title);
+        final newTodo = await todoServices.createTodo(event.title, event.imagePath);
         final updatedTodos = List<Todo>.from((state as TodoLoaded).todos)..add(newTodo);
         emit(TodoLoaded(todos: updatedTodos));
       }

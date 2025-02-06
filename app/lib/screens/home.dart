@@ -1,8 +1,10 @@
 import 'package:app/bloc/todo_bloc.dart';
 import 'package:app/event/todo_event.dart';
-import 'package:app/state/todo_state.dart';
+import 'package:app/screens/ViewTodo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'AddTodo_BottomSheet.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -10,7 +12,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+      return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -18,76 +20,45 @@ class HomeScreen extends StatelessWidget {
           'Todo App'
         ),
       ),
-      body: TodoView(),
+      body: Container(
+          child: TodoView()
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => showAddTodoSheet(context),
+      ),
+      bottomNavigationBar: Container(
+        margin: EdgeInsets.fromLTRB(12, 16, 12, 32),
+        child: GNav(
+            haptic: true, // haptic feedback
+            tabBorderRadius: 50,
+            tabActiveBorder: Border.all(color: Colors.black, width: 1), // tab button bordertab button border
+            curve: Curves.easeOutExpo, // tab animation curves
+            duration: Duration(milliseconds: 300), // tab animation duration
+            gap: 8, // the tab button gap between icon and text
+            color: Colors.grey[800], // unselected icon color
+            activeColor: Colors.black, // selected icon and text color
+            iconSize: 32, // tab button icon size
+            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10), // navigation bar padding
+            tabs: [
+              GButton(
+                icon: Icons.home,
+                text: 'Home',
+              ),
+              GButton(
+                icon: Icons.search,
+                text: 'Search',
+              ),
+              GButton(
+                icon: Icons.settings,
+                text: 'Settings',
+              )
+            ]
+        ),
+      ),
     );
   }
 }
 
-class TodoView extends StatelessWidget {
 
-  TodoView({super.key});
-
-  final TextEditingController _titleController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: BlocBuilder<TodoBloc, TodoState>(
-            builder: (context, state) {
-              return TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  hintText: 'Enter todo title',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      final title = _titleController.text.trim();
-                      if (title.isNotEmpty){
-                        context.read<TodoBloc>().add(AddTodo(title: title));
-                        _titleController.clear();
-                      }
-                    },
-                  ),
-                ),
-              );
-            },
-          )
-        ),
-        Expanded(
-          child: BlocBuilder<TodoBloc, TodoState>(
-            builder: (context, state) {
-              if (state is TodoLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is TodoLoaded) {
-                final todos = state.todos;
-                return ListView.builder(
-                  itemCount: todos.length,
-                  itemBuilder: (context, index) {
-                    final todo = todos[index];
-                    return ListTile(
-                      title: Text(todo.title),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          context.read<TodoBloc>().add(DeleteTodo(id: todo.id));
-                        },
-                      ),
-                    );
-                  },
-                );
-              } else if (state is TodoError) {
-                return Center(child: Text(state.message));
-              } else {
-                return const Center(child: Text('No todos available.'));
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
 

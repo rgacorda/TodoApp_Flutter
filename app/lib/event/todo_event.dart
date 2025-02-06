@@ -4,8 +4,10 @@ class LoadTodos extends TodoEvent {}
 
 class AddTodo extends TodoEvent {
   final String title;
+  final String? imagePath;
   AddTodo({
-    required this.title
+    required this.title,
+    this.imagePath
   });
 }
 
